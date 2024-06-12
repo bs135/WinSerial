@@ -1,6 +1,6 @@
 ﻿/**
  * @file WinSerial.cpp
- * @author 
+ * @author
  * @brief
  * @version 0.1
  * @date 2024-06-02
@@ -110,7 +110,7 @@ static SERIAL_CONFIG ReadSerialConfig()
 	HKEY hKey;
 	SERIAL_CONFIG cfg;
 	cfg.Serial = 0;
-	cfg.BaudRate = 9600;
+	cfg.BaudRate = 115200;
 	cfg.WordLength = 8;
 	cfg.StopBit = ONESTOPBIT;
 	cfg.Parity = NOPARITY;
