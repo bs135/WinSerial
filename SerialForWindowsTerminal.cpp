@@ -16,8 +16,14 @@ HINSTANCE hInstance;
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    SettingFunc(HWND, UINT, WPARAM, LPARAM);
 
+// 添加全局标志来跟踪Ctrl+A状态
+bool g_isCtrlAPressed = false;
+// 添加全局标志来控制程序退出
+bool g_shouldExit = false;
+std::vector<uint8_t> g_lineBuffer;
 
 using PortsArray = std::vector<std::pair<std::wstring, int>>;
+
 static PortsArray GetAllPorts(void)
 {
     PortsArray ports;
@@ -95,7 +101,52 @@ typedef struct
     DWORD StopBit;
     DWORD Parity;
     DWORD FlowControl;
+    DWORD EncodingFormat;  // 添加编码格式字段：0=UTF8, 1=GBK
+    DWORD EchoMode;        // 添加回显模式字段：0=关闭(字符模式), 1=开启(行模式)
 }SERIAL_CONFIG;
+
+static void WriteSerialConfig(const SERIAL_CONFIG& cfg)
+{
+    HKEY hKey;
+    if (ERROR_SUCCESS == ::RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\SerialForWindowsTerminal", &hKey))
+    {
+        DWORD dwSize = sizeof(DWORD);
+        DWORD dwType = REG_DWORD;
+
+        ::RegSetValueEx(hKey, L"Serial", 0, dwType, (CONST LPBYTE)&cfg.Serial, dwSize);
+        ::RegSetValueEx(hKey, L"BaudRate", 0, dwType, (CONST LPBYTE)&cfg.BaudRate, dwSize);
+        ::RegSetValueEx(hKey, L"WordLength", 0, dwType, (CONST LPBYTE)&cfg.WordLength, dwSize);
+        ::RegSetValueEx(hKey, L"StopBit", 0, dwType, (CONST LPBYTE)&cfg.StopBit, dwSize);
+        ::RegSetValueEx(hKey, L"Parity", 0, dwType, (CONST LPBYTE)&cfg.Parity, dwSize);
+        ::RegSetValueEx(hKey, L"FlowControl", 0, dwType, (CONST LPBYTE)&cfg.FlowControl, dwSize);
+        ::RegSetValueEx(hKey, L"EncodingFormat", 0, dwType, (CONST LPBYTE)&cfg.EncodingFormat, dwSize);
+        ::RegSetValueEx(hKey, L"EchoMode", 0, dwType, (CONST LPBYTE)&cfg.EchoMode, dwSize);  // 写入回显模式
+        ::RegCloseKey(hKey);
+    }
+}
+
+static void ToggleEncodingFormat(SERIAL_CONFIG& cfg)
+{
+    // 切换编码格式
+    cfg.EncodingFormat = (cfg.EncodingFormat == 0) ? 1 : 0;
+    
+    // 应用新的编码格式
+    if (cfg.EncodingFormat == 0) // UTF-8
+    {
+        SetConsoleOutputCP(CP_UTF8);
+        SetConsoleCP(CP_UTF8);
+        std::cout << "\033[32mConsole encoding: UTF-8\033[0m" << std::endl;
+    }
+    else // GBK
+    {
+        SetConsoleOutputCP(936);
+        SetConsoleCP(936);
+        std::cout << "\033[32mConsole encoding: GBK\033[0m" << std::endl;
+    }
+    
+    // 保存配置到注册表
+    WriteSerialConfig(cfg);
+}
 
 static SERIAL_CONFIG ReadSerialConfig()
 {
@@ -107,6 +158,8 @@ static SERIAL_CONFIG ReadSerialConfig()
     cfg.StopBit = ONESTOPBIT;
     cfg.Parity = NOPARITY;
     cfg.FlowControl = 0;
+    cfg.EncodingFormat = 0;  // 默认使用UTF-8编码
+    cfg.EchoMode = 0;        // 默认关闭回显模式（字符模式）
     if (ERROR_SUCCESS == ::RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\SerialForWindowsTerminal", 0, KEY_READ, &hKey))
     {
         DWORD dwSize = sizeof(DWORD);
@@ -118,27 +171,26 @@ static SERIAL_CONFIG ReadSerialConfig()
         ::RegQueryValueEx(hKey, L"StopBit", 0, &dwType, (LPBYTE)&cfg.StopBit, &dwSize);
         ::RegQueryValueEx(hKey, L"Parity", 0, &dwType, (LPBYTE)&cfg.Parity, &dwSize);
         ::RegQueryValueEx(hKey, L"FlowControl", 0, &dwType, (LPBYTE)&cfg.FlowControl, &dwSize);
+        ::RegQueryValueEx(hKey, L"EncodingFormat", 0, &dwType, (LPBYTE)&cfg.EncodingFormat, &dwSize);
+        ::RegQueryValueEx(hKey, L"EchoMode", 0, &dwType, (LPBYTE)&cfg.EchoMode, &dwSize);  // 读取回显模式
         ::RegCloseKey(hKey);
     }
     return cfg;
 }
 
-static void WriteSerialConfig(const SERIAL_CONFIG& cfg)
+static void ToggleEchoMode(SERIAL_CONFIG& cfg)
 {
-    HKEY hKey;
-    if (ERROR_SUCCESS == ::RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\SerialForWindowsTerminal", &hKey))
-    {
-        DWORD dwSize = sizeof(DWORD);
-        DWORD dwType = REG_DWORD;
-
-        ::RegSetValueEx(hKey, L"Serial", 0, dwType, (CONST LPBYTE) & cfg.Serial, dwSize);
-        ::RegSetValueEx(hKey, L"BaudRate", 0, dwType, (CONST LPBYTE) & cfg.BaudRate, dwSize);
-        ::RegSetValueEx(hKey, L"WordLength", 0, dwType, (CONST LPBYTE) & cfg.WordLength, dwSize);
-        ::RegSetValueEx(hKey, L"StopBit", 0, dwType, (CONST LPBYTE) & cfg.StopBit, dwSize);
-        ::RegSetValueEx(hKey, L"Parity", 0, dwType, (CONST LPBYTE) & cfg.Parity, dwSize);
-        ::RegSetValueEx(hKey, L"FlowControl", 0, dwType, (CONST LPBYTE) & cfg.FlowControl, dwSize);
-        ::RegCloseKey(hKey);
-    }
+    // 切换回显模式
+    cfg.EchoMode = (cfg.EchoMode == 0) ? 1 : 0;
+    
+    // 清空行缓冲区
+    g_lineBuffer.clear();
+    
+    // 显示当前回显模式
+    std::cout << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
+    
+    // 保存配置到注册表
+    WriteSerialConfig(cfg);
 }
 
 static boost::system::error_code InitializeSerialPort(boost::asio::serial_port& serialPort,const SERIAL_CONFIG& cfg, boost::system::error_code& ec)
@@ -203,13 +255,12 @@ static boost::system::error_code InitializeSerialPort(boost::asio::serial_port& 
     
     return ec;
 }
-
 template <class TStream1, class TStream2>
-static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<uint8_t>& buffer)
+static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<uint8_t>& buffer, SERIAL_CONFIG* pCfg = nullptr)
 {
     stream1.async_read_some(
         boost::asio::buffer(buffer.data(), buffer.size()),
-        [&stream1, &stream2, &buffer](const boost::system::error_code& ec, std::size_t bytes_transferred)
+        [&stream1, &stream2, &buffer, pCfg](const boost::system::error_code& ec, std::size_t bytes_transferred)
         {
             if (ec)
             {
@@ -217,27 +268,135 @@ static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<u
             }
             else
             {
-                boost::asio::async_write(
-                    stream2,
-                    boost::asio::const_buffer(buffer.data(), bytes_transferred),
-                    [&stream1, &stream2, &buffer](const boost::system::error_code& ec, std::size_t bytes_transferred)
+                // 检查是否需要特殊处理键盘输入（仅当stream1是标准输入且有配置指针时）
+                bool skipWrite = false;
+                if (pCfg != nullptr)
+                {
+                    for (size_t i = 0; i < bytes_transferred; i++)
                     {
-                        if (ec)
+                        uint8_t ch = buffer[i];
+                        
+                        // 检查Ctrl+A (ASCII 1)
+                        if (ch == 1)
                         {
-                            std::cerr << "\033[31m" << "error : " << ec.message() << "\033[0m" << std::endl;
+                            g_isCtrlAPressed = true;
+                            skipWrite = true;
+                            break;
                         }
-                        else
+                        
+                        // 如果Ctrl+A已按下，检查后续按键
+                        if (g_isCtrlAPressed)
                         {
-                            DoStreamToStream(stream1, stream2, buffer);
+                            g_isCtrlAPressed = false; // 重置标志
+                            skipWrite = true;
+                            
+                            // Ctrl+X: 退出程序
+                            if (ch == 24) // Ctrl+X
+                            {
+                                if (MessageBoxW(NULL, L"确定要退出程序吗？", L"退出确认", MB_YESNO | MB_ICONQUESTION) == IDYES)
+                                {
+                                    g_shouldExit = true;
+                                    // 通过取消所有异步操作来退出io_service
+                                    stream1.cancel();
+                                    stream2.cancel();
+                                    exit(0);
+                                }
+                            }
+                            // Ctrl+C: 切换编码格式
+                            else if (ch == 3) // Ctrl+C
+                            {
+                                ToggleEncodingFormat(*pCfg);
+                            }
+                            // Ctrl+E: 切换回显模式
+                            else if (ch == 5) // Ctrl+E
+                            {
+                                ToggleEchoMode(*pCfg);
+                            }
+                            break;
                         }
                     }
-                );
+                    
+                    // 如果是回显模式且不是特殊按键，进行行缓冲处理
+                    if (!skipWrite && pCfg->EchoMode == 1)
+                    {
+                        skipWrite = true; // 总是跳过直接写入，由行模式处理
+                        
+                        for (size_t i = 0; i < bytes_transferred; i++)
+                        {
+                            uint8_t ch = buffer[i];
+                            
+                            // 处理退格键
+                            if (ch == 8 || ch == 127) // Backspace或Delete
+                            {
+                                if (!g_lineBuffer.empty())
+                                {
+                                    g_lineBuffer.pop_back();
+                                    // 输出退格、空格、退格以清除屏幕上的字符
+                                    std::cout << "\b \b";
+                                }
+                                continue;
+                            }
+                            
+                            // 处理回车换行
+                            if (ch == '\r' || ch == '\n')
+                            {
+                                // 发送累积的行数据
+                                // if (!g_lineBuffer.empty())
+                                // {
+                                    // 添加回车换行
+                                    g_lineBuffer.push_back('\r');
+                                    g_lineBuffer.push_back('\n');
+                                    
+                                    // 写入串口
+                                    boost::asio::write(stream2, boost::asio::buffer(g_lineBuffer.data(), g_lineBuffer.size()));
+                                    
+                                    // 清空缓冲区
+                                    g_lineBuffer.clear();
+                                // }
+                                
+                                // 显示换行到终端
+                                std::cout << "\n";
+                                continue;
+                            }
+                            
+                            // 普通字符，添加到缓冲区并回显
+                            g_lineBuffer.push_back(ch);
+                            std::cout << static_cast<char>(ch);
+                            std::cout.flush(); // 确保立即显示
+                        }
+                    }
+                }
+                
+                // 只有在不需要特殊处理且不是回显模式时才进行正常的数据流传输
+                if (!skipWrite && (pCfg == nullptr || pCfg->EchoMode == 0))
+                {
+                    boost::asio::async_write(
+                        stream2,
+                        boost::asio::const_buffer(buffer.data(), bytes_transferred),
+                        [&stream1, &stream2, &buffer, pCfg](const boost::system::error_code& ec, std::size_t bytes_transferred)
+                        {
+                            if (ec)
+                            {
+                                std::cerr << "\033[31m" << "error : " << ec.message() << "\033[0m" << std::endl;
+                            }
+                            else
+                            {
+                                DoStreamToStream(stream1, stream2, buffer, pCfg);
+                            }
+                        }
+                    );
+                }
+                else if (!g_shouldExit)
+                {
+                    // 继续监听输入
+                    DoStreamToStream(stream1, stream2, buffer, pCfg);
+                }
             }
         }
     );
 }
 
-static boost::system::error_code DoWork(boost::asio::io_service& ioctx, boost::asio::serial_port& serialPort)
+static boost::system::error_code DoWork(boost::asio::io_service& ioctx, boost::asio::serial_port& serialPort, SERIAL_CONFIG& cfg)
 {
     boost::system::error_code ec;
     boost::asio::windows::stream_handle stdinput(ioctx);
@@ -257,8 +416,14 @@ static boost::system::error_code DoWork(boost::asio::io_service& ioctx, boost::a
     if (stdoutput.assign(conout, ec))
         return ec;
 
+    // 对于串口到输出的流，不需要特殊处理
     DoStreamToStream(serialPort, stdoutput, serialPortRecvBuffer);
-    DoStreamToStream(stdinput, serialPort, serialPortSendBuffer);
+    // 对于输入到串口的流，传递配置指针以支持快捷键处理
+    DoStreamToStream(stdinput, serialPort, serialPortSendBuffer, &cfg);
+    
+    // 重置退出标志
+    g_shouldExit = false;
+    
     ioctx.run(ec);
     return ec;
 }
@@ -293,6 +458,7 @@ int wmain(int argc, const WCHAR* args[])
             hWndParent = GetConsoleWindow();
         if (DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_SETTING_DIALOG), hWndParent, SettingFunc, 1) == IDOK)
         {
+            ioctx.restart();
             auto cfg = ReadSerialConfig();
             auto portName = std::string("COM") + std::to_string(cfg.Serial);
             if (serialPort.open(portName, ec))
@@ -307,18 +473,43 @@ int wmain(int argc, const WCHAR* args[])
                 std::cerr << "\033[31m" << "error : " << ec.message() << "\033[0m" << std::endl;
                 continue;
             }
+            else
+            {
+                // 根据用户选择的编码格式设置控制台
+                if (cfg.EncodingFormat == 0) // UTF-8
+                {
+                    SetConsoleOutputCP(CP_UTF8);
+                    SetConsoleCP(CP_UTF8);
+                }
+                else // GBK
+                {
+                    SetConsoleOutputCP(936);  // 936是GBK的代码页
+                    SetConsoleCP(936);
+                }
+
+                    // 显示当前编码格式
+                    std::cout << "\033[36mVersion: v1.0.0\033[0m" << std::endl;
+                    std::cout << "\033[32mConsole encoding: " << (cfg.EncodingFormat == 0 ? "UTF-8" : "GBK") << "\033[0m" << std::endl;
+                    std::cout << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
+                    std::cout << "\033[33mPress Ctrl+A then Ctrl+C to toggle encoding format\033[0m" << std::endl;
+                    std::cout << "\033[33mPress Ctrl+A then Ctrl+E to toggle echo mode\033[0m" << std::endl;
+                    std::cout << "\033[33mPress Ctrl+A then Ctrl+X to exit\033[0m" << std::endl;
+
+                    // 运行工作循环，传递配置
+                    DoWork(ioctx, serialPort, cfg);
+                    
+                    // 检查是否需要退出程序
+                    if (g_shouldExit)
+                    {
+                        break;
+                    }
+            }
             break;
         }
         else
         {
             return ERROR_CANCELLED;
         }
-    }
-    ec = DoWork(ioctx, serialPort);
-    if (ec)
-    {
-        std::cerr << "\033[31m" << "error : " << ec.message() << "\033[0m" << std::endl;
-        return ec.value();
     }
     return ERROR_SUCCESS;
 }
@@ -420,6 +611,18 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
         ComboBox_AddString(hWndFlowControl, L"硬件");
         ComboBox_SetCurSel(hWndFlowControl, (int)(cfg.FlowControl));
 
+        // 在WM_INITDIALOG处理部分，在FlowControl下拉框之后添加编码格式下拉框
+        auto hWndEncoding = GetDlgItem(hDlg, IDC_COMBO_ENCODING);
+        ComboBox_AddString(hWndEncoding, L"UTF-8");
+        ComboBox_AddString(hWndEncoding, L"GBK");
+        ComboBox_SetCurSel(hWndEncoding, (int)(cfg.EncodingFormat));
+
+        // 添加回显模式复选框
+        auto hWndEchoMode = GetDlgItem(hDlg, IDC_COMBO_ECHO);
+        ComboBox_AddString(hWndEchoMode, L"关闭");
+        ComboBox_AddString(hWndEchoMode, L"开启");
+        ComboBox_SetCurSel(hWndEchoMode, (int)(cfg.EchoMode));
+
         return (INT_PTR)TRUE;
     }
     case WM_DEVICECHANGE:
@@ -455,6 +658,14 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
                 cfg.StopBit = ComboBox_GetCurSel(hWndStopBit);
                 cfg.Parity = ComboBox_GetCurSel(hWndParity);
                 cfg.FlowControl = ComboBox_GetCurSel(hWndFlowControl);
+                // 获取编码格式下拉框的当前选择
+                auto hWndEncoding = GetDlgItem(hDlg, IDC_COMBO_ENCODING);
+                cfg.EncodingFormat = ComboBox_GetCurSel(hWndEncoding);
+
+                // 获取回显模式复选框状态
+                auto hWndEchoMode = GetDlgItem(hDlg, IDC_COMBO_ECHO);
+                cfg.EchoMode = ComboBox_GetCurSel(hWndEchoMode);
+
                 WriteSerialConfig(cfg);
             }
             EndDialog(hDlg, LOWORD(wParam));

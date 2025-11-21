@@ -25,6 +25,9 @@
 #define IDC_COMBO_PARITY                1006
 #define IDC_COMBO6                      1007
 #define IDC_COMBO_FLOW_CONTROL          1007
+#define IDC_COMBO_ENCODING              1008
+#define IDC_COMBO_FLOW_CONTROL2         1011
+#define IDC_COMBO_ECHO                  1011
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -34,7 +37,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif
