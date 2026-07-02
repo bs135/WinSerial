@@ -1,6 +1,6 @@
 # WinSerial
 
-A lightweight and efficient tool for connecting to serial ports on Windows, uniquely designed to be integrated seamlessly as a tab within the Windows Terminal.
+A tool for connecting to a serial port for Windows, which can be integrated as a tab in the Windows Terminal.
 
 ## Usage
 
@@ -52,3 +52,7 @@ WinSerial features built-in hotkeys for quick on-the-fly configurations during y
 
 This project is licensed under the Apache License Version 2.0. See the `LICENSE` file for more details.
 
+## Acknowledgements
+
+This project is a fork of [SerialPortForWindowsTerminal](https://github.com/Zhou-zhi-peng/SerialPortForWindowsTerminal). 
+Many thanks to the original author for the excellent foundation.
