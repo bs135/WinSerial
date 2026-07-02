@@ -319,6 +319,12 @@ static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<u
                         {
                             ToggleEchoMode(*pCfg);
                         }
+                        // Ctrl+I: Show About
+                        else if (ch == 9) 
+                        {
+                            HWND hWndParent = GetForegroundWindow();
+                            DialogBox(hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWndParent, About);
+                        }
                         break;
                     }
                 }
