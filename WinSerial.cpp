@@ -10,6 +10,7 @@
 
 #include "framework.h"
 #include "WinSerial.h"
+#include "Version.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -497,7 +498,7 @@ int wmain(int argc, const WCHAR* args[])
                 }
 
                 // Display current encoding format
-                std::cout << "\033[36mVersion: v1.0.0\033[0m" << std::endl;
+                std::cout << "\033[36mVersion: v" << APP_VERSION_FULL << "\033[0m" << std::endl;
                 std::cout << "\033[32mConsole encoding: " << (cfg.EncodingFormat == 0 ? "UTF-8" : "GBK") << "\033[0m" << std::endl;
                 std::cout << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
                 std::cout << "\033[33mPress Ctrl+A then Ctrl+C to toggle encoding format\033[0m" << std::endl;
