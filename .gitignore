@@ -368,3 +368,4 @@ CMakeUserPresets.json
 
 # External projects
 *-prefix/
+vcpkg/
