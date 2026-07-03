@@ -1,15 +1,22 @@
 ﻿//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ 生成的包含文件。
-// 供 SerialForWindowsTerminal.rc 使用
+// ---------------------------------------------------------------------------
+// MODIFICATION NOTICE:
+// This file has been modified by BS (thanhhai135@gmail.com) on 07/02/2026.
+//
+// Changes made:
+// - Translated comments to English for the WinSerial project.
+// ---------------------------------------------------------------------------
+// Microsoft Visual C++ generated include file.
+// Used by WinSerial.rc
 //
 #define IDC_MYICON                      2
-#define IDD_SERIALFORWINDOWSTERMINAL_DIALOG 102
+#define IDD_WINSERIAL_DIALOG            102
 #define IDS_APP_TITLE                   103
 #define IDD_ABOUTBOX                    103
 #define IDM_ABOUT                       104
-#define IDI_SERIALFORWINDOWSTERMINAL    107
+#define IDI_WINSERIAL                   107
 #define IDI_SMALL                       108
-#define IDC_SERIALFORWINDOWSTERMINAL    109
+#define IDC_WINSERIAL                   109
 #define IDR_MAINFRAME                   128
 #define IDD_SETTING_DIALOG              130
 #define IDC_COMBO1                      1002

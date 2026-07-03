@@ -1,0 +1,8 @@
+{
+  "name": "winserial",
+  "version": "1.0.0",
+  "dependencies": [
+    "boost-asio"
+  ],
+  "builtin-baseline": "38a77589121bd7ec6487927b79c191a75d4ebdd6"
+}
