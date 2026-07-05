@@ -6,22 +6,18 @@ A tool for connecting to a serial port for Windows, which can be integrated as a
 
 ### Installation
 
-1. Download the latest compiled executable (`WinSerial.exe`) from the Releases page.
-2. Place the executable in a preferred directory on your machine.
-3. **Windows Terminal Integration:** Open your Windows Terminal `settings.json` file and add a new profile pointing to the `WinSerial.exe` path. For example:
-    `C:\Users\[UserName]\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json`
+Choose one of the following installation methods that best suits your needs:
 
-    ```json
-    {
-        "closeOnExit": "never",
-        "commandline": "C:\\Path\\To\\Your\\WinSerial.exe",
-        "guid": "{91f33bb2-1a76-4d6d-9b70-12f5954657b3}",
-        "hidden": false,
-        "icon": "C:\\Path\\To\\Your\\WinSerial.ico",
-        "name": "WinSerial"
-    }
+#### **Installer (Recommended)**
 
-    ```
+1. Download and install the latest [Windows Terminal](https://github.com/microsoft/terminal/releases) or from Microsoft Store.
+2. Download and run the latest WinSerial installer (`WinSerial-setup.exe`) from the [Releases](https://github.com/bs135/WinSerial/releases) page.
+3. Open Windows Terminal and launch a new WinSerial tab.
+
+#### **Portable**
+
+1. Download the latest portable package (`WinSerial-portable.zip`) from the [Releases](https://github.com/bs135/WinSerial/releases) page.
+2. Extract the archive and run `WinSerial.exe`.
 
 ### Connecting to a Serial Port
 
