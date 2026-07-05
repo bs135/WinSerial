@@ -143,13 +143,13 @@ static void ToggleEncodingFormat(SERIAL_CONFIG& cfg)
     {
         SetConsoleOutputCP(CP_UTF8);
         SetConsoleCP(CP_UTF8);
-        std::cout << "\033[32mConsole encoding: UTF-8\033[0m" << std::endl;
+        std::cout << std::endl << "\033[32mConsole encoding: UTF-8\033[0m" << std::endl;
     }
     else // GBK
     {
         SetConsoleOutputCP(936);
         SetConsoleCP(936);
-        std::cout << "\033[32mConsole encoding: GBK\033[0m" << std::endl;
+        std::cout << std::endl << "\033[32mConsole encoding: GBK\033[0m" << std::endl;
     }
 
     // Save configuration to registry
@@ -195,7 +195,7 @@ static void ToggleEchoMode(SERIAL_CONFIG& cfg)
     g_lineBuffer.clear();
 
     // Display current echo mode
-    std::cout << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
+    std::cout << std::endl << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
 
     // Save configuration to registry
     WriteSerialConfig(cfg);
@@ -498,12 +498,14 @@ int wmain(int argc, const WCHAR* args[])
                 }
 
                 // Display current encoding format
-                std::cout << "\033[36mVersion: " << APP_VERSION_FULL << "\033[0m" << std::endl;
-                std::cout << "\033[32mConsole encoding: " << (cfg.EncodingFormat == 0 ? "UTF-8" : "GBK") << "\033[0m" << std::endl;
-                std::cout << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
-                std::cout << "\033[33mPress Ctrl+A then Ctrl+C to toggle encoding format\033[0m" << std::endl;
-                std::cout << "\033[33mPress Ctrl+A then Ctrl+E to toggle echo mode\033[0m" << std::endl;
-                std::cout << "\033[33mPress Ctrl+A then Ctrl+X to exit\033[0m" << std::endl;
+                std::cout << "\033[36mWinSerial Version: " << APP_VERSION_FULL << "\033[0m" << std::endl;
+                // std::cout << "\033[32mConsole encoding: " << (cfg.EncodingFormat == 0 ? "UTF-8" : "GBK") << "\033[0m" << std::endl;
+                // std::cout << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
+                // std::cout << "\033[33mPress Ctrl+A then Ctrl+C to toggle encoding format\033[0m" << std::endl;
+                // std::cout << "\033[33mPress Ctrl+A then Ctrl+E to toggle echo mode\033[0m" << std::endl;
+                // std::cout << "\033[33mPress Ctrl+A then Ctrl+X to exit\033[0m" << std::endl;
+                std::cout << "\033[33mPress Ctrl+A then Ctrl+I for more information.\033[0m" << std::endl;
+                std::cout << std::endl;
 
                 // Run work loop, passing configuration
                 DoWork(ioctx, serialPort, cfg);
