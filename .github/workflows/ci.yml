@@ -94,9 +94,19 @@ jobs:
         run: |
           cmake --build build --config Release
 
-      - name: Create Release and Upload Asset
+      - name: Create Portable Zip
+        run: |
+          Compress-Archive -Path "build\Release\WinSerial.exe" -DestinationPath "WinSerial-portable.zip" -Force
+
+      - name: Build Setup Installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" WinSerial.iss
+
+      - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.tagging.outputs.new_tag }}
           body: ${{ needs.tagging.outputs.changelog }}
-          files: build/Release/WinSerial.exe
+          files: |
+            build\Installer\WinSerial-setup.exe
+            WinSerial-portable.zip
