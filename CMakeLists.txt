@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 # Project metadata
-project(WinSerial VERSION 1.2.0 LANGUAGES CXX)
+project(WinSerial VERSION 1.3.0 LANGUAGES CXX)
 
 # Enable Unicode for Windows API to resolve C2664 compilation errors
 add_compile_definitions(UNICODE _UNICODE)
