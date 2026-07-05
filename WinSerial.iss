@@ -30,7 +30,7 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 LicenseFile=.\LICENSE
-SetupIconFile=.\WinSerial.ico
+SetupIconFile=.\assets\WinSerial-setup.ico
 
 ; --- Architecture Settings (Force 64-bit mode) ---
 ArchitecturesAllowed=x64

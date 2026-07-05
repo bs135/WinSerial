@@ -1,6 +1,6 @@
 # WinSerial
 
-![WinSerial Icon](./assets/WinSerial_icon.png)
+![WinSerial Icon](./assets/WinSerial.png)
 
 A tool for connecting to a serial port for Windows, which can be integrated as a tab in the Windows Terminal.
 
