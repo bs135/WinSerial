@@ -1,5 +1,7 @@
 # WinSerial
 
+![WinSerial Icon](./assets/WinSerial.png)
+
 A tool for connecting to a serial port for Windows, which can be integrated as a tab in the Windows Terminal.
 
 ## Usage
@@ -108,3 +110,5 @@ This project is licensed under the Apache License Version 2.0. See the `LICENSE`
 
 This project is a fork of [SerialPortForWindowsTerminal](https://github.com/Zhou-zhi-peng/SerialPortForWindowsTerminal).
 Many thanks to the original author for the excellent foundation.
+
+The application icon is sourced from [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:VSPD_Icon.png).
