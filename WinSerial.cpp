@@ -21,7 +21,7 @@
 
 // Global variables:
 HINSTANCE hInstance;
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    AboutFunc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    SettingFunc(HWND, UINT, WPARAM, LPARAM);
 
 // Add a global flag to track Ctrl+A status
@@ -324,7 +324,7 @@ static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<u
                         else if (ch == 9) 
                         {
                             HWND hWndParent = GetForegroundWindow();
-                            DialogBox(hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWndParent, About);
+                            DialogBox(hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWndParent, AboutFunc);
                         }
                         break;
                     }
@@ -527,7 +527,7 @@ int wmain(int argc, const WCHAR* args[])
 }
 
 // Message handler for the "About" box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK AboutFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
     switch (message)
