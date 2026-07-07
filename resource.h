@@ -22,6 +22,7 @@
 #define IDC_COMBO_FLOW_CONTROL          1007
 #define IDC_COMBO_ENCODING              1008
 #define IDC_COMBO_ECHO                  1011
+#define IDC_COMBO_HIGHLIGHT             1012
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
