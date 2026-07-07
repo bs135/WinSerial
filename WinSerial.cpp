@@ -205,6 +205,28 @@ static SERIAL_CONFIG ReadSerialConfig()
     return cfg;
 }
 
+static void ShowHelp(SERIAL_CONFIG& cfg)
+{
+    std::cout << std::endl;
+    std::cout << "------------------------" << std::endl;
+    std::cout << "\033[36mWinSerial " << APP_VERSION_FULL << "\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Current configurations:" << std::endl;
+    std::cout << "\033[32m      Console encoding: " << (cfg.EncodingFormat == 0 ? "UTF-8" : "GBK") << "\033[0m" << std::endl;
+    std::cout << "\033[32m             Echo mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
+    std::cout << "\033[32m  Keyword Highlighting: " << (cfg.KeywordHighlighting == 0 ? "Off" : "On") << "\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Hotkeys:" << std::endl;
+    std::cout << "\033[33m  Ctrl+A, Ctrl+F: Toggle automatic Keyword Highlighting (`On` / `Off`)\033[0m" << std::endl;
+    std::cout << "\033[33m  Ctrl+A, Ctrl+C: Toggle console Encoding format (`UTF-8` / `GBK`)\033[0m" << std::endl;
+    std::cout << "\033[33m  Ctrl+A, Ctrl+E: Toggle local Echo mode (`On` / `Off`)\033[0m" << std::endl;
+    std::cout << "\033[33m  Ctrl+A, Ctrl+I: Display application version and information dialog\033[0m" << std::endl;
+    std::cout << "\033[33m  Ctrl+A, Ctrl+H: Display this help menu\033[0m" << std::endl;
+    std::cout << "\033[33m  Ctrl+A, Ctrl+X: Safely disconnect and exit the application\033[0m" << std::endl;
+    std::cout << "------------------------" << std::endl;
+    std::cout << std::endl;
+}
+
 static void ToggleEchoMode(SERIAL_CONFIG& cfg)
 {
     // Toggle echo mode
@@ -378,6 +400,10 @@ static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<u
                         else if (ch == 6) // Ctrl+F: Toggle keyword highlighting
                         {
                             ToggleKeywordHighlighting(*pCfg);
+                        }
+                        else if (ch == 8) // Ctrl+H: Show Help
+                        {
+                            ShowHelp(*pCfg);
                         }
                         else if (ch == 9) // Ctrl+I: Show About
                         {
@@ -593,6 +619,7 @@ int wmain(int argc, const WCHAR* args[])
 
                 // Display current encoding format
                 std::cout << "\033[36mWinSerial " << APP_VERSION_STR << "\033[0m" << std::endl;
+                std::cout << "\033[33mPress Ctrl+A then Ctrl+H for help\033[0m" << std::endl;
                 std::cout << std::endl;
 
                 // Run work loop, passing configuration
