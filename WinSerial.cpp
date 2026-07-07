@@ -22,8 +22,8 @@
 
 // Global variables:
 HINSTANCE hInstance;
-INT_PTR CALLBACK    AboutFunc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    SettingFunc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK AboutFunc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK SettingFunc(HWND, UINT, WPARAM, LPARAM);
 
 // Global flag to track Ctrl+A status
 bool g_isCtrlAPressed = false;
@@ -39,11 +39,11 @@ std::vector<uint8_t> g_recvLineBuffer;
 
 using PortsArray = std::vector<std::pair<std::wstring, int>>;
 
-const std::string ANSI_RESET   = "\x1b[0m";
-const std::string ANSI_RED     = "\x1b[31m";
-const std::string ANSI_GREEN   = "\x1b[32m";
-const std::string ANSI_YELLOW  = "\x1b[33m";
-const std::string ANSI_CYAN    = "\x1b[36m";
+const std::string ANSI_RESET = "\x1b[0m";
+const std::string ANSI_RED = "\x1b[31m";
+const std::string ANSI_GREEN = "\x1b[32m";
+const std::string ANSI_YELLOW = "\x1b[33m";
+const std::string ANSI_CYAN = "\x1b[36m";
 
 static PortsArray GetAllPorts(void)
 {
@@ -54,8 +54,8 @@ static PortsArray GetAllPorts(void)
     {
         while (true)
         {
-            TCHAR szName[MAX_PATH] = { 0 };
-            TCHAR szPort[MAX_PATH] = { 0 };
+            TCHAR szName[MAX_PATH] = {0};
+            TCHAR szPort[MAX_PATH] = {0};
             DWORD nValueSize = MAX_PATH - 1;
             DWORD nDataSize = MAX_PATH - 1;
             DWORD nType;
@@ -122,12 +122,12 @@ typedef struct
     DWORD StopBit;
     DWORD Parity;
     DWORD FlowControl;
-    DWORD EncodingFormat;       // Encoding Format      : 0=UTF8, 1=GBK
-    DWORD EchoMode;             // Echo Mode            : 0=Off(Char mode), 1=On(Line mode)
-    DWORD KeywordHighlighting;  // Keyword Highlighting : 0=Off, 1=On
-}SERIAL_CONFIG;
+    DWORD EncodingFormat;      // Encoding Format      : 0=UTF8, 1=GBK
+    DWORD EchoMode;            // Echo Mode            : 0=Off(Char mode), 1=On(Line mode)
+    DWORD KeywordHighlighting; // Keyword Highlighting : 0=Off, 1=On
+} SERIAL_CONFIG;
 
-static void WriteSerialConfig(const SERIAL_CONFIG& cfg)
+static void WriteSerialConfig(const SERIAL_CONFIG &cfg)
 {
     HKEY hKey;
     if (ERROR_SUCCESS == ::RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\WinSerial", &hKey))
@@ -135,20 +135,20 @@ static void WriteSerialConfig(const SERIAL_CONFIG& cfg)
         DWORD dwSize = sizeof(DWORD);
         DWORD dwType = REG_DWORD;
 
-        ::RegSetValueEx(hKey, L"Serial", 0, dwType, (CONST LPBYTE) & cfg.Serial, dwSize);
-        ::RegSetValueEx(hKey, L"BaudRate", 0, dwType, (CONST LPBYTE) & cfg.BaudRate, dwSize);
-        ::RegSetValueEx(hKey, L"WordLength", 0, dwType, (CONST LPBYTE) & cfg.WordLength, dwSize);
-        ::RegSetValueEx(hKey, L"StopBit", 0, dwType, (CONST LPBYTE) & cfg.StopBit, dwSize);
-        ::RegSetValueEx(hKey, L"Parity", 0, dwType, (CONST LPBYTE) & cfg.Parity, dwSize);
-        ::RegSetValueEx(hKey, L"FlowControl", 0, dwType, (CONST LPBYTE) & cfg.FlowControl, dwSize);
-        ::RegSetValueEx(hKey, L"EncodingFormat", 0, dwType, (CONST LPBYTE) & cfg.EncodingFormat, dwSize);
-        ::RegSetValueEx(hKey, L"EchoMode", 0, dwType, (CONST LPBYTE) & cfg.EchoMode, dwSize);
-        ::RegSetValueEx(hKey, L"KeywordHighlighting", 0, dwType, (CONST LPBYTE) & cfg.KeywordHighlighting, dwSize);
+        ::RegSetValueEx(hKey, L"Serial", 0, dwType, (CONST LPBYTE)&cfg.Serial, dwSize);
+        ::RegSetValueEx(hKey, L"BaudRate", 0, dwType, (CONST LPBYTE)&cfg.BaudRate, dwSize);
+        ::RegSetValueEx(hKey, L"WordLength", 0, dwType, (CONST LPBYTE)&cfg.WordLength, dwSize);
+        ::RegSetValueEx(hKey, L"StopBit", 0, dwType, (CONST LPBYTE)&cfg.StopBit, dwSize);
+        ::RegSetValueEx(hKey, L"Parity", 0, dwType, (CONST LPBYTE)&cfg.Parity, dwSize);
+        ::RegSetValueEx(hKey, L"FlowControl", 0, dwType, (CONST LPBYTE)&cfg.FlowControl, dwSize);
+        ::RegSetValueEx(hKey, L"EncodingFormat", 0, dwType, (CONST LPBYTE)&cfg.EncodingFormat, dwSize);
+        ::RegSetValueEx(hKey, L"EchoMode", 0, dwType, (CONST LPBYTE)&cfg.EchoMode, dwSize);
+        ::RegSetValueEx(hKey, L"KeywordHighlighting", 0, dwType, (CONST LPBYTE)&cfg.KeywordHighlighting, dwSize);
         ::RegCloseKey(hKey);
     }
 }
 
-static void ToggleEncodingFormat(SERIAL_CONFIG& cfg)
+static void ToggleEncodingFormat(SERIAL_CONFIG &cfg)
 {
     // Toggle encoding format
     cfg.EncodingFormat = (cfg.EncodingFormat == 0) ? 1 : 0;
@@ -158,13 +158,15 @@ static void ToggleEncodingFormat(SERIAL_CONFIG& cfg)
     {
         SetConsoleOutputCP(CP_UTF8);
         SetConsoleCP(CP_UTF8);
-        std::cout << std::endl << "\033[32mConsole encoding: UTF-8\033[0m" << std::endl;
+        std::cout << std::endl
+                  << "\033[32mConsole encoding: UTF-8\033[0m" << std::endl;
     }
     else // GBK
     {
         SetConsoleOutputCP(936);
         SetConsoleCP(936);
-        std::cout << std::endl << "\033[32mConsole encoding: GBK\033[0m" << std::endl;
+        std::cout << std::endl
+                  << "\033[32mConsole encoding: GBK\033[0m" << std::endl;
     }
 
     // Save configuration to registry
@@ -181,9 +183,9 @@ static SERIAL_CONFIG ReadSerialConfig()
     cfg.StopBit = ONESTOPBIT;
     cfg.Parity = NOPARITY;
     cfg.FlowControl = 0;
-    cfg.EncodingFormat = 0;         // Default to UTF-8 encoding
-    cfg.EchoMode = 0;               // Default echo mode off
-    cfg.KeywordHighlighting = 1;    // Default keyword highlighting on
+    cfg.EncodingFormat = 0;      // Default to UTF-8 encoding
+    cfg.EchoMode = 0;            // Default echo mode off
+    cfg.KeywordHighlighting = 1; // Default keyword highlighting on
     if (ERROR_SUCCESS == ::RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\WinSerial", 0, KEY_READ, &hKey))
     {
         DWORD dwSize = sizeof(DWORD);
@@ -205,7 +207,7 @@ static SERIAL_CONFIG ReadSerialConfig()
     return cfg;
 }
 
-static void ShowHelp(SERIAL_CONFIG& cfg)
+static void ShowHelp(SERIAL_CONFIG &cfg)
 {
     std::cout << std::endl;
     std::cout << "------------------------" << std::endl;
@@ -227,7 +229,7 @@ static void ShowHelp(SERIAL_CONFIG& cfg)
     std::cout << std::endl;
 }
 
-static void ToggleEchoMode(SERIAL_CONFIG& cfg)
+static void ToggleEchoMode(SERIAL_CONFIG &cfg)
 {
     // Toggle echo mode
     cfg.EchoMode = (cfg.EchoMode == 0) ? 1 : 0;
@@ -236,13 +238,14 @@ static void ToggleEchoMode(SERIAL_CONFIG& cfg)
     g_lineBuffer.clear();
 
     // Display current echo mode
-    std::cout << std::endl << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
+    std::cout << std::endl
+              << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
 
     // Save configuration to registry
     WriteSerialConfig(cfg);
 }
 
-static void ToggleKeywordHighlighting(SERIAL_CONFIG& cfg)
+static void ToggleKeywordHighlighting(SERIAL_CONFIG &cfg)
 {
     // Toggle auto keyword color highlighting
     cfg.KeywordHighlighting = (cfg.KeywordHighlighting == 1) ? 0 : 1;
@@ -252,13 +255,15 @@ static void ToggleKeywordHighlighting(SERIAL_CONFIG& cfg)
     g_lineBuffer.clear();
 
     // Display current highlighting mode
-    std::cout << std::endl << "\033[32mKeyword Highlighting: " << (g_enableHighlight ? "On" : "Off") << "\033[0m" << std::endl;
+    std::cout << std::endl
+              << "\033[32mKeyword Highlighting: " << (g_enableHighlight ? "On" : "Off") << "\033[0m" << std::endl;
 
     // Save configuration to registry
     WriteSerialConfig(cfg);
 }
 
-static std::string ColorizeString(const std::string& input) {
+static std::string ColorizeString(const std::string &input)
+{
     std::string output = input;
 
     // 1. Red (Error/Failures)
@@ -280,7 +285,7 @@ static std::string ColorizeString(const std::string& input) {
     return output;
 }
 
-static boost::system::error_code InitializeSerialPort(boost::asio::serial_port& serialPort, const SERIAL_CONFIG& cfg, boost::system::error_code& ec)
+static boost::system::error_code InitializeSerialPort(boost::asio::serial_port &serialPort, const SERIAL_CONFIG &cfg, boost::system::error_code &ec)
 {
     serialPort.set_option(boost::asio::serial_port::baud_rate(cfg.BaudRate), ec);
     if (ec)
@@ -344,189 +349,189 @@ static boost::system::error_code InitializeSerialPort(boost::asio::serial_port& 
 }
 
 template <class TStream1, class TStream2>
-static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<uint8_t>& buffer, SERIAL_CONFIG* pCfg = nullptr)
+static void DoStreamToStream(TStream1 &stream1, TStream2 &stream2, std::vector<uint8_t> &buffer, SERIAL_CONFIG *pCfg = nullptr)
 {
     stream1.async_read_some(
         boost::asio::buffer(buffer.data(), buffer.size()),
-        [&stream1, &stream2, &buffer, pCfg](const boost::system::error_code& ec, std::size_t bytes_transferred)
-    {
-        if (ec)
+        [&stream1, &stream2, &buffer, pCfg](const boost::system::error_code &ec, std::size_t bytes_transferred)
         {
-            std::cerr << "\033[31m" << "error : " << ec.message() << "\033[0m" << std::endl;
-        }
-        else
-        {
-            // Check if keyboard input needs special handling (only if stream1 is standard input and config pointer is provided)
-            bool skipWrite = false;
-            if (pCfg != nullptr)
+            if (ec)
             {
-                for (size_t i = 0; i < bytes_transferred; i++)
+                std::cerr << "\033[31m" << "error : " << ec.message() << "\033[0m" << std::endl;
+            }
+            else
+            {
+                // Check if keyboard input needs special handling (only if stream1 is standard input and config pointer is provided)
+                bool skipWrite = false;
+                if (pCfg != nullptr)
                 {
-                    uint8_t ch = buffer[i];
-
-                    // Check for Ctrl+A (ASCII 1)
-                    if (ch == 1)
-                    {
-                        g_isCtrlAPressed = true;
-                        skipWrite = true;
-                        break;
-                    }
-
-                    // If Ctrl+A is pressed, check the next key
-                    if (g_isCtrlAPressed)
-                    {
-                        g_isCtrlAPressed = false; // Reset flag
-                        skipWrite = true;
-
-                        if (ch == 24) // Ctrl+X: Exit program
-                        {
-                            if (MessageBoxW(NULL, L"Are you sure you want to exit?", L"Exit Confirmation", MB_YESNO | MB_ICONQUESTION) == IDYES)
-                            {
-                                g_shouldExit = true;
-                                // Exit io_service by canceling all asynchronous operations
-                                stream1.cancel();
-                                stream2.cancel();
-                                exit(0);
-                            }
-                        }
-                        else if (ch == 3) // Ctrl+C: Toggle encoding format
-                        {
-                            ToggleEncodingFormat(*pCfg);
-                        }
-                        else if (ch == 5) // Ctrl+E: Toggle echo mode
-                        {
-                            ToggleEchoMode(*pCfg);
-                        }
-                        else if (ch == 6) // Ctrl+F: Toggle keyword highlighting
-                        {
-                            ToggleKeywordHighlighting(*pCfg);
-                        }
-                        else if (ch == 8) // Ctrl+H: Show Help
-                        {
-                            ShowHelp(*pCfg);
-                        }
-                        else if (ch == 9) // Ctrl+I: Show About
-                        {
-                            HWND hWndParent = GetForegroundWindow();
-                            DialogBox(hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWndParent, AboutFunc);
-                        }
-                        break;
-                    }
-                }
-
-                // If in echo mode and not a special key, process line buffering
-                if (!skipWrite && pCfg->EchoMode == 1)
-                {
-                    skipWrite = true; // Always skip direct write, handled by line mode
-
                     for (size_t i = 0; i < bytes_transferred; i++)
                     {
                         uint8_t ch = buffer[i];
 
-                        // Handle Backspace or Delete key
-                        if (ch == 8 || ch == 127)
+                        // Check for Ctrl+A (ASCII 1)
+                        if (ch == 1)
                         {
-                            if (!g_lineBuffer.empty())
+                            g_isCtrlAPressed = true;
+                            skipWrite = true;
+                            break;
+                        }
+
+                        // If Ctrl+A is pressed, check the next key
+                        if (g_isCtrlAPressed)
+                        {
+                            g_isCtrlAPressed = false; // Reset flag
+                            skipWrite = true;
+
+                            if (ch == 24) // Ctrl+X: Exit program
                             {
-                                g_lineBuffer.pop_back();
-                                // Output backspace, space, backspace to clear character on screen
-                                std::cout << "\b \b";
+                                if (MessageBoxW(NULL, L"Are you sure you want to exit?", L"Exit Confirmation", MB_YESNO | MB_ICONQUESTION) == IDYES)
+                                {
+                                    g_shouldExit = true;
+                                    // Exit io_service by canceling all asynchronous operations
+                                    stream1.cancel();
+                                    stream2.cancel();
+                                    exit(0);
+                                }
                             }
-                            continue;
+                            else if (ch == 3) // Ctrl+C: Toggle encoding format
+                            {
+                                ToggleEncodingFormat(*pCfg);
+                            }
+                            else if (ch == 5) // Ctrl+E: Toggle echo mode
+                            {
+                                ToggleEchoMode(*pCfg);
+                            }
+                            else if (ch == 6) // Ctrl+F: Toggle keyword highlighting
+                            {
+                                ToggleKeywordHighlighting(*pCfg);
+                            }
+                            else if (ch == 8) // Ctrl+H: Show Help
+                            {
+                                ShowHelp(*pCfg);
+                            }
+                            else if (ch == 9) // Ctrl+I: Show About
+                            {
+                                HWND hWndParent = GetForegroundWindow();
+                                DialogBox(hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWndParent, AboutFunc);
+                            }
+                            break;
                         }
+                    }
 
-                        // Handle Carriage Return / Line Feed
-                        if (ch == '\r' || ch == '\n')
+                    // If in echo mode and not a special key, process line buffering
+                    if (!skipWrite && pCfg->EchoMode == 1)
+                    {
+                        skipWrite = true; // Always skip direct write, handled by line mode
+
+                        for (size_t i = 0; i < bytes_transferred; i++)
                         {
-                            // Add CR LF
-                            g_lineBuffer.push_back('\r');
-                            g_lineBuffer.push_back('\n');
+                            uint8_t ch = buffer[i];
 
-                            // Write to serial port
-                            boost::asio::write(stream2, boost::asio::buffer(g_lineBuffer.data(), g_lineBuffer.size()));
+                            // Handle Backspace or Delete key
+                            if (ch == 8 || ch == 127)
+                            {
+                                if (!g_lineBuffer.empty())
+                                {
+                                    g_lineBuffer.pop_back();
+                                    // Output backspace, space, backspace to clear character on screen
+                                    std::cout << "\b \b";
+                                }
+                                continue;
+                            }
 
-                            // Clear buffer
-                            g_lineBuffer.clear();
+                            // Handle Carriage Return / Line Feed
+                            if (ch == '\r' || ch == '\n')
+                            {
+                                // Add CR LF
+                                g_lineBuffer.push_back('\r');
+                                g_lineBuffer.push_back('\n');
 
-                            // Display newline to terminal
-                            std::cout << "\n";
-                            continue;
+                                // Write to serial port
+                                boost::asio::write(stream2, boost::asio::buffer(g_lineBuffer.data(), g_lineBuffer.size()));
+
+                                // Clear buffer
+                                g_lineBuffer.clear();
+
+                                // Display newline to terminal
+                                std::cout << "\n";
+                                continue;
+                            }
+
+                            // Normal character, add to buffer and echo
+                            g_lineBuffer.push_back(ch);
+                            std::cout << static_cast<char>(ch);
+                            std::cout.flush(); // Ensure immediate display
                         }
-
-                        // Normal character, add to buffer and echo
-                        g_lineBuffer.push_back(ch);
-                        std::cout << static_cast<char>(ch);
-                        std::cout.flush(); // Ensure immediate display
                     }
                 }
-            }
 
-            // Perform normal data stream transmission only when no special handling is needed and not in echo mode
-            // =====================================================================
-            // STREAM 1: DATA FROM SERIAL PORT -> OUTPUT TO CONSOLE (WITH COLORING)
-            // =====================================================================
-            if (!skipWrite && pCfg == nullptr)
-            {
-                for (size_t i = 0; i < bytes_transferred; i++)
+                // Perform normal data stream transmission only when no special handling is needed and not in echo mode
+                // =====================================================================
+                // STREAM 1: DATA FROM SERIAL PORT -> OUTPUT TO CONSOLE (WITH COLORING)
+                // =====================================================================
+                if (!skipWrite && pCfg == nullptr)
                 {
-                    uint8_t ch = buffer[i];
-                    g_recvLineBuffer.push_back(ch);
-
-                    // Flush buffer on newline, last byte of the chunk, or when buffer is full
-                    if (ch == '\n' || ch == '\r' || i == bytes_transferred - 1 || g_recvLineBuffer.size() > 4096)
+                    for (size_t i = 0; i < bytes_transferred; i++)
                     {
-                        // Convert buffer to string
-                        std::string line(g_recvLineBuffer.begin(), g_recvLineBuffer.end());
+                        uint8_t ch = buffer[i];
+                        g_recvLineBuffer.push_back(ch);
 
-                        // Apply keyword highlighting
-                        std::string outputLine = g_enableHighlight ? ColorizeString(line) : line;
+                        // Flush buffer on newline, last byte of the chunk, or when buffer is full
+                        if (ch == '\n' || ch == '\r' || i == bytes_transferred - 1 || g_recvLineBuffer.size() > 4096)
+                        {
+                            // Convert buffer to string
+                            std::string line(g_recvLineBuffer.begin(), g_recvLineBuffer.end());
 
-                        // Print directly to console
-                        std::cout << outputLine;
-                        std::cout.flush();
+                            // Apply keyword highlighting
+                            std::string outputLine = g_enableHighlight ? ColorizeString(line) : line;
 
-                        // Clear buffer to receive subsequent data
-                        g_recvLineBuffer.clear();
+                            // Print directly to console
+                            std::cout << outputLine;
+                            std::cout.flush();
+
+                            // Clear buffer to receive subsequent data
+                            g_recvLineBuffer.clear();
+                        }
                     }
-                }
 
-                // Since synchronous std::cout is used instead of async_write,
-                // DoStreamToStream must be re-invoked immediately to continue the data reception loop
-                if (!g_shouldExit) {
-                    DoStreamToStream(stream1, stream2, buffer, pCfg);
-                }
-            }
-            // =====================================================================
-            // STREAM 2: DATA FROM KEYBOARD -> SEND TO SERIAL PORT (NO LOCAL ECHO)
-            // =====================================================================
-            else if (!skipWrite && pCfg != nullptr && pCfg->EchoMode == 0)
-            {
-                boost::asio::async_write(
-                    stream2,
-                    boost::asio::const_buffer(buffer.data(), bytes_transferred),
-                    [&stream1, &stream2, &buffer, pCfg](const boost::system::error_code& ec, std::size_t bytes_transferred)
-                {
-                    if (ec)
-                    {
-                        std::cerr << "\033[31m" << "error : " << ec.message() << "\033[0m" << std::endl;
-                    }
-                    else
+                    // Since synchronous std::cout is used instead of async_write,
+                    // DoStreamToStream must be re-invoked immediately to continue the data reception loop
+                    if (!g_shouldExit)
                     {
                         DoStreamToStream(stream1, stream2, buffer, pCfg);
                     }
-                });
+                }
+                // =====================================================================
+                // STREAM 2: DATA FROM KEYBOARD -> SEND TO SERIAL PORT (NO LOCAL ECHO)
+                // =====================================================================
+                else if (!skipWrite && pCfg != nullptr && pCfg->EchoMode == 0)
+                {
+                    boost::asio::async_write(
+                        stream2,
+                        boost::asio::const_buffer(buffer.data(), bytes_transferred),
+                        [&stream1, &stream2, &buffer, pCfg](const boost::system::error_code &ec, std::size_t bytes_transferred)
+                        {
+                            if (ec)
+                            {
+                                std::cerr << "\033[31m" << "error : " << ec.message() << "\033[0m" << std::endl;
+                            }
+                            else
+                            {
+                                DoStreamToStream(stream1, stream2, buffer, pCfg);
+                            }
+                        });
+                }
+                else if (!g_shouldExit)
+                {
+                    // Continue listening for input
+                    DoStreamToStream(stream1, stream2, buffer, pCfg);
+                }
             }
-            else if (!g_shouldExit)
-            {
-                // Continue listening for input
-                DoStreamToStream(stream1, stream2, buffer, pCfg);
-            }
-        }
-    }
-    );
+        });
 }
 
-static boost::system::error_code DoWork(boost::asio::io_context& ioctx, boost::asio::serial_port& serialPort, SERIAL_CONFIG& cfg)
+static boost::system::error_code DoWork(boost::asio::io_context &ioctx, boost::asio::serial_port &serialPort, SERIAL_CONFIG &cfg)
 {
     boost::system::error_code ec;
     boost::asio::windows::stream_handle stdinput(ioctx);
@@ -558,7 +563,7 @@ static boost::system::error_code DoWork(boost::asio::io_context& ioctx, boost::a
     return ec;
 }
 
-int wmain(int argc, const WCHAR* args[])
+int wmain(int argc, const WCHAR *args[])
 {
     boost::system::error_code ec;
     boost::asio::io_context ioctx;
@@ -613,7 +618,7 @@ int wmain(int argc, const WCHAR* args[])
                 }
                 else // GBK
                 {
-                    SetConsoleOutputCP(936);  // 936 is the codepage for GBK
+                    SetConsoleOutputCP(936); // 936 is the codepage for GBK
                     SetConsoleCP(936);
                 }
 
@@ -763,7 +768,7 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
         {
             if (LOWORD(wParam) == IDOK)
             {
-                SERIAL_CONFIG cfg = { 0 };
+                SERIAL_CONFIG cfg = {0};
                 auto hWndPort = GetDlgItem(hDlg, IDC_COMBO_PORT);
                 auto hWndBaudRate = GetDlgItem(hDlg, IDC_COMBO_SPEED);
                 auto hWndWordLength = GetDlgItem(hDlg, IDC_COMBO_WORD);
@@ -774,7 +779,7 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
                 auto hWndEchoMode = GetDlgItem(hDlg, IDC_COMBO_ECHO);
                 auto hWndKeywordHighlighting = GetDlgItem(hDlg, IDC_COMBO_HIGHLIGHT);
 
-                WCHAR txtBuffer[32] = { 0 };
+                WCHAR txtBuffer[32] = {0};
                 auto curSel = ComboBox_GetCurSel(hWndPort);
                 if (curSel >= 0)
                 {

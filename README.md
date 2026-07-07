@@ -52,7 +52,7 @@ Click **OK** to establish the connection and launch the terminal session.
 
 ### Hotkeys
 
-WinSerial features built-in hotkeys for on-the-fly configurations during an active session. 
+WinSerial features built-in hotkeys for on-the-fly configurations during an active session.
 
 **Note:** You must press `Ctrl+A` first to enter **Command Mode**, followed by one of the action keys below:
 
