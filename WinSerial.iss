@@ -119,23 +119,23 @@ begin
 
     // 3. Find the position of the path string (case-insensitive)
     PosIndex := Pos(Uppercase(ExpandedPath), Uppercase(OrigPath));
-    
+
     // If found, proceed to remove it
     if PosIndex > 0 then
     begin
       // Delete the matched path string, leaving one trailing ';'
       Delete(OrigPath, PosIndex, Length(ExpandedPath) - 1);
-      
+
       // Clean up any duplicated semicolons ';;'
       while Pos(';;', OrigPath) > 0 do
         StringChangeEx(OrigPath, ';;', ';', True);
-        
+
       // Remove leading or trailing semicolons if they exist
       if Copy(OrigPath, 1, 1) = ';' then
         Delete(OrigPath, 1, 1);
       if Copy(OrigPath, Length(OrigPath), 1) = ';' then
         Delete(OrigPath, Length(OrigPath), 1);
-        
+
       // 4. Overwrite the cleaned PATH back into the Registry
       RegWriteStringValue(HKEY_CURRENT_USER, 'Environment', 'Path', OrigPath);
     end;
