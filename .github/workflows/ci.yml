@@ -16,7 +16,7 @@ jobs:
       changelog: ${{ steps.tag_version.outputs.changelog }}
 
     steps:
-      - name: Checkout souece code
+      - name: Checkout source code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 
