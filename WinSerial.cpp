@@ -24,10 +24,12 @@ HINSTANCE hInstance;
 INT_PTR CALLBACK    AboutFunc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    SettingFunc(HWND, UINT, WPARAM, LPARAM);
 
-// Add a global flag to track Ctrl+A status
+// Global flag to track Ctrl+A status
 bool g_isCtrlAPressed = false;
-// Add a global flag to control program exit
+
+// Global flag to control program exit
 bool g_shouldExit = false;
+
 std::vector<uint8_t> g_lineBuffer;
 
 using PortsArray = std::vector<std::pair<std::wstring, int>>;
@@ -109,8 +111,8 @@ typedef struct
     DWORD StopBit;
     DWORD Parity;
     DWORD FlowControl;
-    DWORD EncodingFormat;  // Add encoding format field: 0=UTF8, 1=GBK
-    DWORD EchoMode;        // Add echo mode field: 0=Off(Char mode), 1=On(Line mode)
+    DWORD EncodingFormat;       // Encoding Format      : 0=UTF8, 1=GBK
+    DWORD EchoMode;             // Echo Mode            : 0=Off(Char mode), 1=On(Line mode)
 }SERIAL_CONFIG;
 
 static void WriteSerialConfig(const SERIAL_CONFIG& cfg)
@@ -128,7 +130,7 @@ static void WriteSerialConfig(const SERIAL_CONFIG& cfg)
         ::RegSetValueEx(hKey, L"Parity", 0, dwType, (CONST LPBYTE) & cfg.Parity, dwSize);
         ::RegSetValueEx(hKey, L"FlowControl", 0, dwType, (CONST LPBYTE) & cfg.FlowControl, dwSize);
         ::RegSetValueEx(hKey, L"EncodingFormat", 0, dwType, (CONST LPBYTE) & cfg.EncodingFormat, dwSize);
-        ::RegSetValueEx(hKey, L"EchoMode", 0, dwType, (CONST LPBYTE) & cfg.EchoMode, dwSize);  // Write echo mode
+        ::RegSetValueEx(hKey, L"EchoMode", 0, dwType, (CONST LPBYTE) & cfg.EchoMode, dwSize);
         ::RegCloseKey(hKey);
     }
 }
@@ -166,8 +168,8 @@ static SERIAL_CONFIG ReadSerialConfig()
     cfg.StopBit = ONESTOPBIT;
     cfg.Parity = NOPARITY;
     cfg.FlowControl = 0;
-    cfg.EncodingFormat = 0;  // Default to UTF-8 encoding
-    cfg.EchoMode = 0;        // Default echo mode off (character mode)
+    cfg.EncodingFormat = 0;         // Default to UTF-8 encoding
+    cfg.EchoMode = 0;               // Default echo mode off
     if (ERROR_SUCCESS == ::RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\WinSerial", 0, KEY_READ, &hKey))
     {
         DWORD dwSize = sizeof(DWORD);
@@ -263,6 +265,7 @@ static boost::system::error_code InitializeSerialPort(boost::asio::serial_port& 
 
     return ec;
 }
+
 template <class TStream1, class TStream2>
 static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<uint8_t>& buffer, SERIAL_CONFIG* pCfg = nullptr)
 {
@@ -298,8 +301,7 @@ static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<u
                         g_isCtrlAPressed = false; // Reset flag
                         skipWrite = true;
 
-                        // Ctrl+X: Exit program
-                        if (ch == 24) // Ctrl+X
+                        if (ch == 24) // Ctrl+X: Exit program
                         {
                             if (MessageBoxW(NULL, L"Are you sure you want to exit?", L"Exit Confirmation", MB_YESNO | MB_ICONQUESTION) == IDYES)
                             {
@@ -310,18 +312,15 @@ static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<u
                                 exit(0);
                             }
                         }
-                        // Ctrl+C: Toggle encoding format
-                        else if (ch == 3) // Ctrl+C
+                        else if (ch == 3) // Ctrl+C: Toggle encoding format
                         {
                             ToggleEncodingFormat(*pCfg);
                         }
-                        // Ctrl+E: Toggle echo mode
-                        else if (ch == 5) // Ctrl+E
+                        else if (ch == 5) // Ctrl+E: Toggle echo mode
                         {
                             ToggleEchoMode(*pCfg);
                         }
-                        // Ctrl+I: Show About
-                        else if (ch == 9) 
+                        else if (ch == 9) // Ctrl+I: Show About
                         {
                             HWND hWndParent = GetForegroundWindow();
                             DialogBox(hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWndParent, AboutFunc);
@@ -393,8 +392,7 @@ static void DoStreamToStream(TStream1& stream1, TStream2& stream2, std::vector<u
                     {
                         DoStreamToStream(stream1, stream2, buffer, pCfg);
                     }
-                }
-                );
+                });
             }
             else if (!g_shouldExit)
             {
@@ -498,13 +496,7 @@ int wmain(int argc, const WCHAR* args[])
                 }
 
                 // Display current encoding format
-                std::cout << "\033[36mWinSerial Version: " << APP_VERSION_FULL << "\033[0m" << std::endl;
-                // std::cout << "\033[32mConsole encoding: " << (cfg.EncodingFormat == 0 ? "UTF-8" : "GBK") << "\033[0m" << std::endl;
-                // std::cout << "\033[32mEcho mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
-                // std::cout << "\033[33mPress Ctrl+A then Ctrl+C to toggle encoding format\033[0m" << std::endl;
-                // std::cout << "\033[33mPress Ctrl+A then Ctrl+E to toggle echo mode\033[0m" << std::endl;
-                // std::cout << "\033[33mPress Ctrl+A then Ctrl+X to exit\033[0m" << std::endl;
-                std::cout << "\033[33mPress Ctrl+A then Ctrl+I for more information.\033[0m" << std::endl;
+                std::cout << "\033[36mWinSerial " << APP_VERSION_STR << "\033[0m" << std::endl;
                 std::cout << std::endl;
 
                 // Run work loop, passing configuration
@@ -619,17 +611,15 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 
         auto hWndFlowControl = GetDlgItem(hDlg, IDC_COMBO_FLOW_CONTROL);
         ComboBox_AddString(hWndFlowControl, L"None");
-        ComboBox_AddString(hWndFlowControl, L"Software (Xon/Xoff)");
-        ComboBox_AddString(hWndFlowControl, L"Hardware");
+        ComboBox_AddString(hWndFlowControl, L"XON/XOFF");
+        ComboBox_AddString(hWndFlowControl, L"RTS/CTS");
         ComboBox_SetCurSel(hWndFlowControl, (int)(cfg.FlowControl));
 
-        // In WM_INITDIALOG processing part, add encoding format combobox after FlowControl combobox
         auto hWndEncoding = GetDlgItem(hDlg, IDC_COMBO_ENCODING);
         ComboBox_AddString(hWndEncoding, L"UTF-8");
         ComboBox_AddString(hWndEncoding, L"GBK");
         ComboBox_SetCurSel(hWndEncoding, (int)(cfg.EncodingFormat));
 
-        // Add echo mode combobox
         auto hWndEchoMode = GetDlgItem(hDlg, IDC_COMBO_ECHO);
         ComboBox_AddString(hWndEchoMode, L"Off");
         ComboBox_AddString(hWndEchoMode, L"On");
@@ -652,6 +642,8 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
                 auto hWndStopBit = GetDlgItem(hDlg, IDC_COMBO_STOP);
                 auto hWndParity = GetDlgItem(hDlg, IDC_COMBO_PARITY);
                 auto hWndFlowControl = GetDlgItem(hDlg, IDC_COMBO_FLOW_CONTROL);
+                auto hWndEncoding = GetDlgItem(hDlg, IDC_COMBO_ENCODING);
+                auto hWndEchoMode = GetDlgItem(hDlg, IDC_COMBO_ECHO);
 
                 WCHAR txtBuffer[32] = { 0 };
                 auto curSel = ComboBox_GetCurSel(hWndPort);
@@ -670,12 +662,7 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
                 cfg.StopBit = ComboBox_GetCurSel(hWndStopBit);
                 cfg.Parity = ComboBox_GetCurSel(hWndParity);
                 cfg.FlowControl = ComboBox_GetCurSel(hWndFlowControl);
-                // Get current selection of encoding format combobox
-                auto hWndEncoding = GetDlgItem(hDlg, IDC_COMBO_ENCODING);
                 cfg.EncodingFormat = ComboBox_GetCurSel(hWndEncoding);
-
-                // Get echo mode combobox status
-                auto hWndEchoMode = GetDlgItem(hDlg, IDC_COMBO_ECHO);
                 cfg.EchoMode = ComboBox_GetCurSel(hWndEchoMode);
 
                 WriteSerialConfig(cfg);
