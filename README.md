@@ -1,6 +1,6 @@
 # WinSerial
 
-![WinSerial Icon](./assets/WinSerial.png)
+![WinSerial Icon](./assets/icons/WinSerial.png)
 
 A tool for connecting to a serial port for Windows, which can be integrated as a tab in the Windows Terminal.
 
@@ -16,7 +16,7 @@ A tool for connecting to a serial port for Windows, which can be integrated as a
 * **Smart Configuration Management**: Automatically saves your serial port settings (Baud Rate, Stop Bits, Word Length, etc.) to the Windows Registry, remembering your preferences for the next session.
 * **Easy Installation**: Available as a portable application or a fully automated installer (`WinSerial-setup.exe`) that configures your system `PATH` and adds the WinSerial profile directly to your Windows Terminal settings.
 
-![WinSerial Screenshot](./assets/WinSerial-Screenshot.png)
+![WinSerial Screenshot](./assets/screenshots/WinSerial-Demo.gif)
 
 ## Usage
 
@@ -39,11 +39,13 @@ Choose one of the following installation methods that best suits your needs:
 
 When launching WinSerial (either standalone or via Windows Terminal), a configuration dialog prompts you to set up the connection parameters:
 
+![WinSerial Settings](./assets/screenshots/WinSerial-Settings.png)
+
 * **Port:** Select the target COM port from the dropdown menu.
 * **Baud Rate:** Choose the communication speed (e.g., `9600`, `115200`).
 * **Data Bits, Stop Bits, Parity, Flow Control:** Configure these settings based on your target device's specifications.
-* **Encoding:** Select `UTF-8` or `GBK` to ensure proper character rendering.
 * **Keyword Highlighting:** Enable or disable automatic keyword color highlighting (e.g., green for successes, red for errors).
+* **Encoding:** Select `UTF-8` or `GBK` to ensure proper character rendering.
 * **Echo Mode:** Toggle local echo `On` or `Off`.
 
 Click **OK** to establish the connection and launch the terminal session.
