@@ -628,6 +628,11 @@ int wmain(int argc, const WCHAR *args[])
                 std::cout << "\033[33mPress Ctrl+A then Ctrl+H for help\033[0m" << std::endl;
                 std::cout << std::endl;
 
+                // Update title
+                std::wstring wPortName(portName.begin(), portName.end()); 
+                std::wstring appTitle = L"WinSerial - " + wPortName;
+                SetConsoleTitle(appTitle.c_str());
+
                 // Run work loop, passing configuration
                 DoWork(ioctx, serialPort, cfg);
 
