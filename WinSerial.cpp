@@ -353,11 +353,11 @@ static boost::system::error_code InitializeSerialPort(boost::asio::serial_port &
 }
 
 template <class TStream1, class TStream2>
-static void DoStreamToStream(TStream1 &stream1, TStream2 &stream2, std::vector<uint8_t> &buffer, SERIAL_CONFIG *pCfg = nullptr)
+static void DoStreamToStream(TStream1 &stream1, TStream2 &stream2, std::vector<uint8_t> &buffer, SERIAL_CONFIG *pCfg, boost::asio::steady_timer *pTimer)
 {
     stream1.async_read_some(
         boost::asio::buffer(buffer.data(), buffer.size()),
-        [&stream1, &stream2, &buffer, pCfg](const boost::system::error_code &ec, std::size_t bytes_transferred)
+        [&stream1, &stream2, &buffer, pCfg, pTimer](const boost::system::error_code &ec, std::size_t bytes_transferred)
         {
             if (ec)
             {
@@ -481,8 +481,8 @@ static void DoStreamToStream(TStream1 &stream1, TStream2 &stream2, std::vector<u
                         uint8_t ch = buffer[i];
                         g_recvLineBuffer.push_back(ch);
 
-                        // Flush buffer on newline, last byte of the chunk, or when buffer is full
-                        if (ch == '\n' || ch == '\r' || i == bytes_transferred - 1 || g_recvLineBuffer.size() > 4096)
+                        // Flush buffer on newline, or when buffer is full
+                        if (ch == '\n' || ch == '\r' || g_recvLineBuffer.size() > 4096)
                         {
                             // Convert buffer to string
                             std::string line(g_recvLineBuffer.begin(), g_recvLineBuffer.end());
@@ -499,11 +499,27 @@ static void DoStreamToStream(TStream1 &stream1, TStream2 &stream2, std::vector<u
                         }
                     }
 
+                    // Process debounce timer to prevent incomplete log lines
+                    if (pTimer != nullptr)
+                    {
+                        pTimer->expires_after(std::chrono::milliseconds(50));
+                        pTimer->async_wait([](const boost::system::error_code &error)
+                                           {
+                            if (!error && !g_recvLineBuffer.empty())
+                            {
+                                std::string line(g_recvLineBuffer.begin(), g_recvLineBuffer.end());
+                                std::string outputLine = g_enableHighlight ? ColorizeString(line) : line;
+                                std::cout << outputLine;
+                                std::cout.flush();
+                                g_recvLineBuffer.clear();
+                            } });
+                    }
+
                     // Since synchronous std::cout is used instead of async_write,
                     // DoStreamToStream must be re-invoked immediately to continue the data reception loop
                     if (!g_shouldExit)
                     {
-                        DoStreamToStream(stream1, stream2, buffer, pCfg);
+                        DoStreamToStream(stream1, stream2, buffer, pCfg, pTimer);
                     }
                 }
                 // =====================================================================
@@ -514,7 +530,7 @@ static void DoStreamToStream(TStream1 &stream1, TStream2 &stream2, std::vector<u
                     boost::asio::async_write(
                         stream2,
                         boost::asio::const_buffer(buffer.data(), bytes_transferred),
-                        [&stream1, &stream2, &buffer, pCfg](const boost::system::error_code &ec, std::size_t bytes_transferred)
+                        [&stream1, &stream2, &buffer, pCfg, pTimer](const boost::system::error_code &ec, std::size_t bytes_transferred)
                         {
                             if (ec)
                             {
@@ -522,14 +538,14 @@ static void DoStreamToStream(TStream1 &stream1, TStream2 &stream2, std::vector<u
                             }
                             else
                             {
-                                DoStreamToStream(stream1, stream2, buffer, pCfg);
+                                DoStreamToStream(stream1, stream2, buffer, pCfg, pTimer);
                             }
                         });
                 }
                 else if (!g_shouldExit)
                 {
                     // Continue listening for input
-                    DoStreamToStream(stream1, stream2, buffer, pCfg);
+                    DoStreamToStream(stream1, stream2, buffer, pCfg, pTimer);
                 }
             }
         });
@@ -555,10 +571,12 @@ static boost::system::error_code DoWork(boost::asio::io_context &ioctx, boost::a
     if (stdoutput.assign(conout, ec))
         return ec;
 
+    boost::asio::steady_timer flushTimer(ioctx);
+
     // No special handling needed for stream from serial port to output
-    DoStreamToStream(serialPort, stdoutput, serialPortRecvBuffer);
+    DoStreamToStream(serialPort, stdoutput, serialPortRecvBuffer, nullptr, &flushTimer);
     // Pass config pointer for input to serial stream to support shortcut keys
-    DoStreamToStream(stdinput, serialPort, serialPortSendBuffer, &cfg);
+    DoStreamToStream(stdinput, serialPort, serialPortSendBuffer, &cfg, nullptr);
 
     // Reset exit flag
     g_shouldExit = false;
@@ -632,7 +650,7 @@ int wmain(int argc, const WCHAR *args[])
                 std::cout << std::endl;
 
                 // Update title
-                std::wstring wPortName(portName.begin(), portName.end()); 
+                std::wstring wPortName(portName.begin(), portName.end());
                 std::wstring appTitle = L"WinSerial - " + wPortName;
                 SetConsoleTitle(appTitle.c_str());
 
