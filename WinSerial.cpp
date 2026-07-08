@@ -4,6 +4,11 @@
 //
 // Changes made:
 // - Translated all comments and string literals to English.
+// - Format source code C++ style
+// - Add Keyword Highlighting
+// - Add Show console help menu
+// - Add Show About dialog
+// - Add Show portName in the console title
 // ---------------------------------------------------------------------------
 // WinSerial.cpp : Defines the entry point for the application.
 //
@@ -17,8 +22,6 @@
 #include <regex>
 #include <boost/asio.hpp>
 #include <boost/asio/windows/stream_handle.hpp>
-
-#define MAX_LOADSTRING 100
 
 // Global variables:
 HINSTANCE hInstance;
