@@ -7,6 +7,8 @@
 
 ![WinSerial Application Icon](assets/icons/WinSerial_x100.png)
 
+**Serial port terminal for Windows.**
+
 A tool for connecting to a serial port for Windows, which can be integrated as a tab in the Windows Terminal.
 
 ## ✨ Features
@@ -91,7 +93,7 @@ To build WinSerial from source, ensure you have the following components install
 
     * Install the **"Desktop development with C++"** workload via the [Visual Studio Installer](https://visualstudio.microsoft.com/vs/older-downloads/#visual-studio-2022-and-other-products).
     * This workload includes the required MSVC compiler (`cl.exe`) and the necessary Windows SDK.
-    * **Important:** Always build the project using the **"Developer Command Prompt for VS"** or **"Developer PowerShell for VS"** to ensure the build environment variables (like compiler paths) are correctly initialized.
+    * *Note:* Always build the project using the **"PowerShell"** or **"Command Prompt"** to ensure the build environment variables (like compiler paths) are correctly initialized.
 
 2. **Install CMake**
 
@@ -100,8 +102,7 @@ To build WinSerial from source, ensure you have the following components install
 
 3. **Install vcpkg**
 
-    * Follow the official [vcpkg getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-powershell).
-    * Initialize vcpkg:
+    * Follow the official [vcpkg getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-powershell):
 
         ```powershell
         git clone https://github.com/microsoft/vcpkg.git
