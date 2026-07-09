@@ -3,7 +3,7 @@
 ; -----------------------------------------------------------------------------
 
 #define MyAppName "WinSerial"
-#define MyAppVersion "1.7.0"
+#define MyAppVersion "1.7.1"
 #define MyAppPublisher "ChipFC Team"
 #define MyAppExeName "WinSerial.exe"
 
