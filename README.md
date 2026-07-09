@@ -1,10 +1,15 @@
 # WinSerial
 
-![WinSerial Icon](./assets/icons/WinSerial.png)
+[![Build Status](https://github.com/bs135/WinSerial/actions/workflows/ci.yml/badge.svg)](https://github.com/bs135/WinSerial/actions)
+[![GitHub Release](https://img.shields.io/github/v/release/bs135/WinSerial?color=success&logo=github)](https://github.com/bs135/WinSerial/releases/latest)
+[![License](https://img.shields.io/github/license/bs135/WinSerial?color=blue)](https://github.com/bs135/WinSerial/blob/main/LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey?logo=windows)](#)
+
+![WinSerial Application Icon](assets/icons/WinSerial_x100.png)
 
 A tool for connecting to a serial port for Windows, which can be integrated as a tab in the Windows Terminal.
 
-## Features
+## ✨ Features
 
 * **Windows Terminal Integration**: Seamlessly runs as a native tab within Windows Terminal for a modern and unified command-line experience.
 * **Auto Keyword Highlighting**: Automatically detects and colorizes crucial information in the serial data stream to significantly improve readability:
@@ -16,9 +21,9 @@ A tool for connecting to a serial port for Windows, which can be integrated as a
 * **Smart Configuration Management**: Automatically saves your serial port settings (Baud Rate, Stop Bits, Word Length, etc.) to the Windows Registry, remembering your preferences for the next session.
 * **Easy Installation**: Available as a portable application or a fully automated installer (`WinSerial-setup.exe`) that configures your system `PATH` and adds the WinSerial profile directly to your Windows Terminal settings.
 
-![WinSerial Screenshot](./assets/screenshots/WinSerial-Demo.gif)
+![WinSerial-Demo](assets/screenshots/WinSerial-Demo.gif)
 
-## Usage
+## 📖 Usage
 
 ### Installation
 
@@ -39,7 +44,7 @@ Choose one of the following installation methods that best suits your needs:
 
 When launching WinSerial (either standalone or via Windows Terminal), a configuration dialog prompts you to set up the connection parameters:
 
-![WinSerial Settings](./assets/screenshots/WinSerial-Settings.png)
+![WinSerial Settings](assets/screenshots/WinSerial-Settings.png)
 
 * **Port:** Select the target COM port from the dropdown menu.
 * **Baud Rate:** Choose the communication speed (e.g., `9600`, `115200`).
@@ -49,8 +54,6 @@ When launching WinSerial (either standalone or via Windows Terminal), a configur
 * **Echo Mode:** Toggle local echo `On` or `Off`.
 
 Click **OK** to establish the connection and launch the terminal session.
-
----
 
 ### Hotkeys
 
@@ -65,7 +68,20 @@ WinSerial features built-in hotkeys for on-the-fly configurations during an acti
 * `Ctrl+A, Ctrl+H`: Display the help menu.
 * `Ctrl+A, Ctrl+X`: Safely disconnect and exit the application.
 
-## Development
+### Highlight Keywords
+
+WinSerial features an **Auto Keyword Highlighting** system that intelligently scans the incoming serial data stream and colorizes specific keywords on the fly. This helps you quickly identify critical system states, network parameters, and potential errors without manually parsing walls of text.
+
+*Note: Keyword matching is case-insensitive.*
+
+| Color | Description | Keywords |
+| :--- | :--- | :--- |
+| 🔴 **Red** <br>*(Errors & Failures)* | Highlights warning states, errors, and disconnections. | `error`, `failed`, `no`, `down`, `disabled`, `unknown`, `fault`, `shutdown`, `disconnected`, `denied`, `refused`, `problem`, `failure` |
+| 🟢 **Green** <br>*(Success & Enabled)* | Highlights successful operations and active states. | `enabled`, `connected`, `up`, `yes`, `ok`, `success` |
+| 🟡 **Yellow** <br>*(Network Identifiers)* | Highlights network addresses and topology terms for easy tracking. | `localhost`, `vlan`<br>**Patterns:** IPv4 Addresses, MAC Addresses |
+| 🔵 **Cyan** <br>*(Config & Commands)* | Highlights common network equipment commands and configuration terms. | `ip address`, `show`, `interface`, `route`, `spanning-tree` |
+
+## 👨‍💻 Development
 
 ### Prerequisites
 
