@@ -3,7 +3,7 @@
 ; -----------------------------------------------------------------------------
 
 #define MyAppName "WinSerial"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.7.0"
 #define MyAppPublisher "ChipFC Team"
 #define MyAppExeName "WinSerial.exe"
 
@@ -25,7 +25,7 @@ ChangesEnvironment=yes
 
 ; --- Compiler Output Settings ---
 OutputDir=.\build\Installer
-OutputBaseFilename=WinSerial-setup
+OutputBaseFilename=WinSerial-setup-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
