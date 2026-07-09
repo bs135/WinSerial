@@ -9,6 +9,7 @@
 // - Add Show console help menu
 // - Add Show About dialog
 // - Add Show portName in the console title
+// - Remove encoding mode
 // ---------------------------------------------------------------------------
 // WinSerial.cpp : Defines the entry point for the application.
 //
@@ -125,9 +126,8 @@ typedef struct
     DWORD StopBit;
     DWORD Parity;
     DWORD FlowControl;
-    DWORD EncodingFormat;      // Encoding Format      : 0=UTF8, 1=GBK
-    DWORD EchoMode;            // Echo Mode            : 0=Off(Char mode), 1=On(Line mode)
     DWORD KeywordHighlighting; // Keyword Highlighting : 0=Off, 1=On
+    DWORD EchoMode;            // Echo Mode            : 0=Off(Char mode), 1=On(Line mode)
 } SERIAL_CONFIG;
 
 static void WriteSerialConfig(const SERIAL_CONFIG &cfg)
@@ -144,36 +144,10 @@ static void WriteSerialConfig(const SERIAL_CONFIG &cfg)
         ::RegSetValueEx(hKey, L"StopBit", 0, dwType, (CONST LPBYTE)&cfg.StopBit, dwSize);
         ::RegSetValueEx(hKey, L"Parity", 0, dwType, (CONST LPBYTE)&cfg.Parity, dwSize);
         ::RegSetValueEx(hKey, L"FlowControl", 0, dwType, (CONST LPBYTE)&cfg.FlowControl, dwSize);
-        ::RegSetValueEx(hKey, L"EncodingFormat", 0, dwType, (CONST LPBYTE)&cfg.EncodingFormat, dwSize);
-        ::RegSetValueEx(hKey, L"EchoMode", 0, dwType, (CONST LPBYTE)&cfg.EchoMode, dwSize);
         ::RegSetValueEx(hKey, L"KeywordHighlighting", 0, dwType, (CONST LPBYTE)&cfg.KeywordHighlighting, dwSize);
+        ::RegSetValueEx(hKey, L"EchoMode", 0, dwType, (CONST LPBYTE)&cfg.EchoMode, dwSize);
         ::RegCloseKey(hKey);
     }
-}
-
-static void ToggleEncodingFormat(SERIAL_CONFIG &cfg)
-{
-    // Toggle encoding format
-    cfg.EncodingFormat = (cfg.EncodingFormat == 0) ? 1 : 0;
-
-    // Apply new encoding format
-    if (cfg.EncodingFormat == 0) // UTF-8
-    {
-        SetConsoleOutputCP(CP_UTF8);
-        SetConsoleCP(CP_UTF8);
-        std::cout << std::endl
-                  << "\033[32mConsole encoding: UTF-8\033[0m" << std::endl;
-    }
-    else // GBK
-    {
-        SetConsoleOutputCP(936);
-        SetConsoleCP(936);
-        std::cout << std::endl
-                  << "\033[32mConsole encoding: GBK\033[0m" << std::endl;
-    }
-
-    // Save configuration to registry
-    WriteSerialConfig(cfg);
 }
 
 static SERIAL_CONFIG ReadSerialConfig()
@@ -186,9 +160,8 @@ static SERIAL_CONFIG ReadSerialConfig()
     cfg.StopBit = ONESTOPBIT;
     cfg.Parity = NOPARITY;
     cfg.FlowControl = 0;
-    cfg.EncodingFormat = 0;      // Default to UTF-8 encoding
-    cfg.EchoMode = 0;            // Default echo mode off
     cfg.KeywordHighlighting = 1; // Default keyword highlighting on
+    cfg.EchoMode = 0;            // Default echo mode off
     if (ERROR_SUCCESS == ::RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\WinSerial", 0, KEY_READ, &hKey))
     {
         DWORD dwSize = sizeof(DWORD);
@@ -200,9 +173,8 @@ static SERIAL_CONFIG ReadSerialConfig()
         ::RegQueryValueEx(hKey, L"StopBit", 0, &dwType, (LPBYTE)&cfg.StopBit, &dwSize);
         ::RegQueryValueEx(hKey, L"Parity", 0, &dwType, (LPBYTE)&cfg.Parity, &dwSize);
         ::RegQueryValueEx(hKey, L"FlowControl", 0, &dwType, (LPBYTE)&cfg.FlowControl, &dwSize);
-        ::RegQueryValueEx(hKey, L"EncodingFormat", 0, &dwType, (LPBYTE)&cfg.EncodingFormat, &dwSize);
-        ::RegQueryValueEx(hKey, L"EchoMode", 0, &dwType, (LPBYTE)&cfg.EchoMode, &dwSize);
         ::RegQueryValueEx(hKey, L"KeywordHighlighting", 0, &dwType, (LPBYTE)&cfg.KeywordHighlighting, &dwSize);
+        ::RegQueryValueEx(hKey, L"EchoMode", 0, &dwType, (LPBYTE)&cfg.EchoMode, &dwSize);
         ::RegCloseKey(hKey);
     }
     // Update the global flag
@@ -218,13 +190,11 @@ static void ShowHelp(SERIAL_CONFIG &cfg)
     std::cout << std::endl;
     std::cout << "Current configurations:" << std::endl;
     std::cout << "\033[32m  Keyword Highlighting: " << (cfg.KeywordHighlighting == 0 ? "Off" : "On") << "\033[0m" << std::endl;
-    std::cout << "\033[32m      Console encoding: " << (cfg.EncodingFormat == 0 ? "UTF-8" : "GBK") << "\033[0m" << std::endl;
     std::cout << "\033[32m             Echo mode: " << (cfg.EchoMode == 0 ? "Off" : "On") << "\033[0m" << std::endl;
     std::cout << std::endl;
     std::cout << "Hotkeys (You must press Ctrl+A first to enter Command Mode," << std::endl;
     std::cout << "         followed by one of the action keys below):" << std::endl;
     std::cout << "\033[33m  Ctrl+A, Ctrl+F: Toggle automatic Keyword Highlighting (On / Off)\033[0m" << std::endl;
-    std::cout << "\033[33m  Ctrl+A, Ctrl+C: Toggle console Encoding format (UTF-8 / GBK)\033[0m" << std::endl;
     std::cout << "\033[33m  Ctrl+A, Ctrl+E: Toggle local Echo mode (On / Off)\033[0m" << std::endl;
     std::cout << "\033[33m  Ctrl+A, Ctrl+I: Display application version and information dialog\033[0m" << std::endl;
     std::cout << "\033[33m  Ctrl+A, Ctrl+H: Display this help menu\033[0m" << std::endl;
@@ -397,10 +367,6 @@ static void DoStreamToStream(TStream1 &stream1, TStream2 &stream2, std::vector<u
                                     stream2.cancel();
                                     exit(0);
                                 }
-                            }
-                            else if (ch == 3) // Ctrl+C: Toggle encoding format
-                            {
-                                ToggleEncodingFormat(*pCfg);
                             }
                             else if (ch == 5) // Ctrl+E: Toggle echo mode
                             {
@@ -632,19 +598,11 @@ int wmain(int argc, const WCHAR *args[])
             }
             else
             {
-                // Set console according to user's selected encoding format
-                if (cfg.EncodingFormat == 0) // UTF-8
-                {
-                    SetConsoleOutputCP(CP_UTF8);
-                    SetConsoleCP(CP_UTF8);
-                }
-                else // GBK
-                {
-                    SetConsoleOutputCP(936); // 936 is the codepage for GBK
-                    SetConsoleCP(936);
-                }
+                // Set console encoding format UTF-8
+                SetConsoleOutputCP(CP_UTF8);
+                SetConsoleCP(CP_UTF8);
 
-                // Display current encoding format
+                // Display current version
                 std::cout << "\033[36mWinSerial " << APP_VERSION_STR << "\033[0m" << std::endl;
                 std::cout << "\033[33mPress Ctrl+A then Ctrl+H for help\033[0m" << std::endl;
                 std::cout << std::endl;
@@ -770,20 +728,15 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
         ComboBox_AddString(hWndFlowControl, L"RTS/CTS");
         ComboBox_SetCurSel(hWndFlowControl, (int)(cfg.FlowControl));
 
-        auto hWndEncoding = GetDlgItem(hDlg, IDC_COMBO_ENCODING);
-        ComboBox_AddString(hWndEncoding, L"UTF-8");
-        ComboBox_AddString(hWndEncoding, L"GBK");
-        ComboBox_SetCurSel(hWndEncoding, (int)(cfg.EncodingFormat));
+        auto hWndKeywordHighlighting = GetDlgItem(hDlg, IDC_COMBO_HIGHLIGHT);
+        ComboBox_AddString(hWndKeywordHighlighting, L"Off");
+        ComboBox_AddString(hWndKeywordHighlighting, L"On");
+        ComboBox_SetCurSel(hWndKeywordHighlighting, (int)(cfg.KeywordHighlighting));
 
         auto hWndEchoMode = GetDlgItem(hDlg, IDC_COMBO_ECHO);
         ComboBox_AddString(hWndEchoMode, L"Off");
         ComboBox_AddString(hWndEchoMode, L"On");
         ComboBox_SetCurSel(hWndEchoMode, (int)(cfg.EchoMode));
-
-        auto hWndKeywordHighlighting = GetDlgItem(hDlg, IDC_COMBO_HIGHLIGHT);
-        ComboBox_AddString(hWndKeywordHighlighting, L"Off");
-        ComboBox_AddString(hWndKeywordHighlighting, L"On");
-        ComboBox_SetCurSel(hWndKeywordHighlighting, (int)(cfg.KeywordHighlighting));
 
         return (INT_PTR)TRUE;
     }
@@ -802,7 +755,6 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
                 auto hWndStopBit = GetDlgItem(hDlg, IDC_COMBO_STOP);
                 auto hWndParity = GetDlgItem(hDlg, IDC_COMBO_PARITY);
                 auto hWndFlowControl = GetDlgItem(hDlg, IDC_COMBO_FLOW_CONTROL);
-                auto hWndEncoding = GetDlgItem(hDlg, IDC_COMBO_ENCODING);
                 auto hWndEchoMode = GetDlgItem(hDlg, IDC_COMBO_ECHO);
                 auto hWndKeywordHighlighting = GetDlgItem(hDlg, IDC_COMBO_HIGHLIGHT);
 
@@ -823,7 +775,6 @@ INT_PTR CALLBACK SettingFunc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
                 cfg.StopBit = ComboBox_GetCurSel(hWndStopBit);
                 cfg.Parity = ComboBox_GetCurSel(hWndParity);
                 cfg.FlowControl = ComboBox_GetCurSel(hWndFlowControl);
-                cfg.EncodingFormat = ComboBox_GetCurSel(hWndEncoding);
                 cfg.EchoMode = ComboBox_GetCurSel(hWndEchoMode);
                 cfg.KeywordHighlighting = ComboBox_GetCurSel(hWndKeywordHighlighting);
 
