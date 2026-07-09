@@ -34,6 +34,7 @@ jobs:
         run: |
           NEW_VER="${{ steps.calc_version.outputs.new_version }}"
           sed -i -E "s/project\(WinSerial VERSION [0-9]+\.[0-9]+\.[0-9]+/project(WinSerial VERSION $NEW_VER/" CMakeLists.txt
+          sed -i -E "s/^#define MyAppVersion \".*\"/#define MyAppVersion \"$NEW_VER\"/" WinSerial.iss
           jq ".version = \"$NEW_VER\"" vcpkg.json > tmp.json && mv tmp.json vcpkg.json
 
       - name: Commit and Push changes
@@ -42,7 +43,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add CMakeLists.txt vcpkg.json
+          git add CMakeLists.txt WinSerial.iss vcpkg.json
           git commit -m "chore(release): bump version to ${{ steps.calc_version.outputs.new_version }} [skip ci]" || echo "No changes to commit"
           git push
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -108,5 +109,5 @@ jobs:
           tag_name: ${{ needs.tagging.outputs.new_tag }}
           body: ${{ needs.tagging.outputs.changelog }}
           files: |
-            build\Installer\WinSerial-setup.exe
+            build\Installer\WinSerial-setup-*.exe
             WinSerial-portable.zip
