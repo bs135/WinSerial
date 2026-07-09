@@ -14,6 +14,7 @@ jobs:
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
       changelog: ${{ steps.tag_version.outputs.changelog }}
+      new_version: ${{ steps.calc_version.outputs.new_version }}
 
     steps:
       - name: Checkout source code
@@ -97,7 +98,7 @@ jobs:
 
       - name: Create Portable Zip
         run: |
-          Compress-Archive -Path "build\Release\WinSerial.exe" -DestinationPath "WinSerial-portable.zip" -Force
+          Compress-Archive -Path "build\Release\WinSerial.exe" -DestinationPath "WinSerial-portable-${{ needs.tagging.outputs.new_version }}.zip" -Force
 
       - name: Build Setup Installer
         run: |
@@ -109,5 +110,5 @@ jobs:
           tag_name: ${{ needs.tagging.outputs.new_tag }}
           body: ${{ needs.tagging.outputs.changelog }}
           files: |
-            build\Installer\WinSerial-setup-*.exe
-            WinSerial-portable.zip
+            build\Installer\WinSerial-setup-${{ needs.tagging.outputs.new_version }}.exe
+            WinSerial-portable-${{ needs.tagging.outputs.new_version }}.zip
